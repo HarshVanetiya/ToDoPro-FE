@@ -1,13 +1,13 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Plus, Search, Filter, Edit2, Trash2, CheckCircle2, Circle, Calendar, Flag } from 'lucide-react'
+import { Plus, Search, Edit2, Trash2, CheckCircle2, Circle, Calendar, Flag } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
-import { Checkbox } from '@/components/ui/checkbox'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+// ...existing code...
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { todosApi } from '@/lib/api'
 
 interface Todo {
