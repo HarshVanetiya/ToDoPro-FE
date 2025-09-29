@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useSelector } from 'react-redux'
+import { RootState } from '@/store'
 import { Plus, Search, Trash2, CheckCircle2, Circle, Calendar, Flag, Eye, Loader2, Sparkles } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Button } from '@/components/ui/button'
@@ -321,8 +323,9 @@ export default function TodosList() {
   const { toast } = useToast()
   
   const queryClient = useQueryClient()
+  const { isAuthenticated, user, isLoading: authLoading } = useSelector((state: RootState) => state.auth)
 
-  // Fetch todos
+  // Fetch todos - only when authenticated and not loading auth
   const { data, isLoading, error } = useQuery({
     queryKey: ['todos', filters],
     queryFn: () => todosApi.list({
@@ -331,6 +334,7 @@ export default function TodosList() {
       priority: filters.priority as any,
       limit: 50,
     }),
+    enabled: isAuthenticated && !authLoading && !!user, // Only fetch when authenticated
   })
 
   // Mutations
@@ -493,7 +497,7 @@ export default function TodosList() {
 
       {/* Todos List */}
       <div className="space-y-3">
-        {isLoading ? (
+        {(isLoading || authLoading) ? (
           <div className="flex justify-center py-8">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
           </div>
@@ -501,6 +505,11 @@ export default function TodosList() {
           <Card>
             <CardContent className="p-8 text-center">
               <p className="text-red-600">Failed to load todos</p>
+              {error instanceof ApiError && (
+                <p className="text-sm text-gray-600 mt-2">
+                  {error.message || 'Please try refreshing the page'}
+                </p>
+              )}
             </CardContent>
           </Card>
         ) : todos.length === 0 ? (
