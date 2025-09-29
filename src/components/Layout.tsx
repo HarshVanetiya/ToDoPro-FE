@@ -3,7 +3,7 @@ import { Outlet, useNavigate, useLocation, Link } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 import { LogOut, CheckSquare, User, BarChart3, List } from 'lucide-react'
 import { RootState } from '@/store'
-import { setUser, logoutSuccess, setLoading } from '@/store/authSlice'
+import { setUser, logoutSuccess, setLoading, clearSkipAuthCheck } from '@/store/authSlice'
 import { authApi } from '@/lib/api'
 import { Button } from '@/components/ui/button'
 
@@ -11,27 +11,40 @@ export default function Layout() {
   const dispatch = useDispatch()
   const navigate = useNavigate()
   const location = useLocation()
-  const { user, isLoading } = useSelector((state: RootState) => state.auth)
+  const { user, isLoading, skipAuthCheck } = useSelector((state: RootState) => state.auth)
 
   useEffect(() => {
-    // Try to fetch current user on mount
-    const fetchUser = async () => {
-      try {
-        dispatch(setLoading(true))
-        const response = await authApi.me()
-        if (response.data?.user) {
-          dispatch(setUser(response.data.user))
-        }
-      } catch (error) {
-        // User not authenticated, will be redirected by route guard
-        dispatch(setUser(null))
-      } finally {
-        dispatch(setLoading(false))
-      }
+    // Skip auth check if user just logged in successfully
+    if (skipAuthCheck) {
+      dispatch(clearSkipAuthCheck())
+      return
     }
 
-    fetchUser()
-  }, [dispatch])
+    // Only fetch user if we don't already have one or if we have persisted state but need to verify
+    if (!user) {
+      const fetchUser = async () => {
+        try {
+          dispatch(setLoading(true))
+          const response = await authApi.me()
+          if (response.data?.user) {
+            dispatch(setUser(response.data.user))
+          }
+        } catch (error: any) {
+          // Only reset auth state if it's a real authentication error
+          // Don't reset on network errors or other temporary issues
+          if (error.status === 401 || error.status === 403) {
+            dispatch(setUser(null))
+          }
+        } finally {
+          dispatch(setLoading(false))
+        }
+      }
+
+      // Add a small delay to allow cookies to be set properly after login
+      const timeoutId = setTimeout(fetchUser, 100)
+      return () => clearTimeout(timeoutId)
+    }
+  }, [dispatch, skipAuthCheck, user])
 
   const handleLogout = async () => {
     try {

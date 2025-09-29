@@ -29,7 +29,7 @@ export default function Login() {
       const response = await authApi.login({ email, password })
       if (response.data?.user) {
         dispatch(loginSuccess(response.data.user))
-        navigate('/dashboard')
+        navigate('/app/todos')
       }
     } catch (error: any) {
       setError(error.message || 'Login failed')
