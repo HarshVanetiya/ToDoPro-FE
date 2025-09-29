@@ -35,6 +35,7 @@ async function request<T = any>(
     path: `${API_BASE}${path}`,
     body: body ? JSON.stringify(body, null, 2) : 'No body',
     headers,
+    credentials: 'include',
     timestamp: new Date().toISOString()
   })
 

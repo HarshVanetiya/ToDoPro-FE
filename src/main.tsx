@@ -12,8 +12,17 @@ const queryClient = new QueryClient({
     queries: {
       staleTime: 5 * 60 * 1000, // 5 minutes
       retry: (failureCount, error: any) => {
-        if (error?.status === 401) return false
+        // Don't retry on authentication errors
+        if (error?.status === 401 || error?.status === 403) return false
         return failureCount < 3
+      },
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+    },
+    mutations: {
+      retry: (failureCount, error: any) => {
+        // Retry mutations once for network errors, but not auth errors
+        if (error?.status === 401 || error?.status === 403) return false
+        return failureCount < 1
       },
     },
   },

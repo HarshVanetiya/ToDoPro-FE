@@ -29,7 +29,10 @@ export default function Login() {
       const response = await authApi.login({ email, password })
       if (response.data?.user) {
         dispatch(loginSuccess(response.data.user))
-        navigate('/app/todos')
+        // Add a small delay to ensure cookies are set before navigation
+        setTimeout(() => {
+          navigate('/app/todos')
+        }, 200)
       }
     } catch (error: any) {
       setError(error.message || 'Login failed')
