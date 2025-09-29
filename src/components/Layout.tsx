@@ -11,7 +11,7 @@ export default function Layout() {
   const dispatch = useDispatch()
   const navigate = useNavigate()
   const location = useLocation()
-  const { user, isLoading, skipAuthCheck } = useSelector((state: RootState) => state.auth)
+  const { user, isLoading, skipAuthCheck, token } = useSelector((state: RootState) => state.auth)
 
   useEffect(() => {
     // Skip auth check if user just logged in successfully
@@ -20,8 +20,8 @@ export default function Layout() {
       return
     }
 
-    // Only fetch user if we don't already have one or if we have persisted state but need to verify
-    if (!user) {
+    // Only fetch user if we don't already have one and we have a token
+    if (!user && token) {
       const fetchUser = async () => {
         try {
           dispatch(setLoading(true))
@@ -40,11 +40,11 @@ export default function Layout() {
         }
       }
 
-      // Add a small delay to allow cookies to be set properly after login
+      // Add a small delay to allow token to be stored properly after login
       const timeoutId = setTimeout(fetchUser, 100)
       return () => clearTimeout(timeoutId)
     }
-  }, [dispatch, skipAuthCheck, user])
+  }, [dispatch, skipAuthCheck, user, token])
 
   const handleLogout = async () => {
     try {

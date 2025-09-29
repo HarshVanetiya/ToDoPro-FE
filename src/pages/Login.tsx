@@ -27,9 +27,12 @@ export default function Login() {
 
     try {
       const response = await authApi.login({ email, password })
-      if (response.data?.user) {
-        dispatch(loginSuccess(response.data.user))
-        // Add a small delay to ensure cookies are set before navigation
+      if (response.data?.user && response.token) {
+        dispatch(loginSuccess({ 
+          user: response.data.user, 
+          token: response.token 
+        }))
+        // Add a small delay to ensure token is stored before navigation
         setTimeout(() => {
           navigate('/app/todos')
         }, 200)

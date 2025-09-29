@@ -19,6 +19,20 @@ class ApiError extends Error {
   }
 }
 
+// Get token from localStorage
+const getAuthToken = (): string | null => {
+  try {
+    const authState = localStorage.getItem('authState')
+    if (authState) {
+      const parsed = JSON.parse(authState)
+      return parsed.token || null
+    }
+  } catch (err) {
+    // Ignore errors
+  }
+  return null
+}
+
 async function request<T = any>(
   path: string,
   options: {
@@ -28,6 +42,12 @@ async function request<T = any>(
   } = {}
 ): Promise<ApiResponse<T>> {
   const { method = 'GET', body, headers = {} } = options
+  
+  // Add Authorization header if token exists
+  const token = getAuthToken()
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`
+  }
 
   // Debug logging for API requests
   console.log('🌐 [API] Making request:', {
@@ -35,7 +55,7 @@ async function request<T = any>(
     path: `${API_BASE}${path}`,
     body: body ? JSON.stringify(body, null, 2) : 'No body',
     headers,
-    credentials: 'include',
+    hasToken: !!token,
     timestamp: new Date().toISOString()
   })
 
@@ -45,7 +65,6 @@ async function request<T = any>(
       'Content-Type': 'application/json',
       ...headers,
     },
-    credentials: 'include', // Include httpOnly cookies
   }
 
   if (body) {

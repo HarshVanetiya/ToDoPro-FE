@@ -18,6 +18,7 @@ const saveAuthState = (state: AuthState) => {
     const serializedState = JSON.stringify({
       isAuthenticated: state.isAuthenticated,
       user: state.user,
+      token: state.token,
     })
     localStorage.setItem('authState', serializedState)
   } catch (err) {
@@ -36,6 +37,7 @@ interface User {
 interface AuthState {
   isAuthenticated: boolean
   user: User | null
+  token: string | null
   isLoading: boolean
   skipAuthCheck: boolean // Flag to skip auth check after login
 }
@@ -45,6 +47,7 @@ const persistedState = loadAuthState()
 const initialState: AuthState = {
   isAuthenticated: persistedState.isAuthenticated || false,
   user: persistedState.user || null,
+  token: persistedState.token || null,
   isLoading: false,
   skipAuthCheck: false,
 }
@@ -56,9 +59,10 @@ const authSlice = createSlice({
     setLoading: (state, action: PayloadAction<boolean>) => {
       state.isLoading = action.payload
     },
-    loginSuccess: (state, action: PayloadAction<User>) => {
+    loginSuccess: (state, action: PayloadAction<{ user: User; token: string }>) => {
       state.isAuthenticated = true
-      state.user = action.payload
+      state.user = action.payload.user
+      state.token = action.payload.token
       state.isLoading = false
       state.skipAuthCheck = true // Skip auth check after successful login
       saveAuthState(state)
@@ -72,6 +76,7 @@ const authSlice = createSlice({
     logoutSuccess: (state) => {
       state.isAuthenticated = false
       state.user = null
+      state.token = null
       state.isLoading = false
       state.skipAuthCheck = false
       localStorage.removeItem('authState') // Clear persisted state on logout
